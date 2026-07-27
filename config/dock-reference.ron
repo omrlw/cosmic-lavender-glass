@@ -1,0 +1,33 @@
+// Human-readable reference for the dock values written by install.sh.
+// The installer stores these as individual COSMIC configuration keys.
+(
+    anchor: Bottom,
+    anchor_gap: true,
+    autohide: Never,
+    autohide_behavior: (
+        wait_time: 1000,
+        transition_time: 200,
+        handle_size: 4,
+        unhide_delay: 200,
+    ),
+    autohover_delay_ms: Some(500),
+    background: ThemeDefault,
+    border_radius: 160,
+    exclusive_zone: true,
+    expand_to_edges: false,
+    keep_style_on_maximize: true,
+    keyboard_interactivity: OnDemand,
+    layer: Top,
+    margin: 4,
+    name: "Dock",
+    opacity: 0.9,
+    output: All,
+    padding: 4,
+    padding_overlap: 0.5,
+    plugins_center: Some(["com.system76.CosmicAppList"]),
+    plugins_wings: Some(([], [])),
+    size: M,
+    size_center: None,
+    size_wings: None,
+    spacing: 0,
+)

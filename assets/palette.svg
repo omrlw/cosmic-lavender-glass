@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="300" viewBox="0 0 1600 300" role="img" aria-labelledby="title desc">
+  <title id="title">COSMIC Lavender Glass palette</title>
+  <desc id="desc">The background, accent, text, success, warning, and destructive colors.</desc>
+  <rect width="1600" height="300" rx="36" fill="#eff1f5"/>
+  <text x="70" y="72" font-family="system-ui, sans-serif" font-size="34" font-weight="750" fill="#202239">the tiny palette with a big mood</text>
+  <g font-family="system-ui, sans-serif" font-size="18" font-weight="650" fill="#202239">
+    <g transform="translate(70 112)">
+      <rect width="220" height="120" rx="24" fill="#fff"/>
+      <circle cx="46" cy="46" r="24" fill="#eff1f5" stroke="#acb0be"/>
+      <text x="82" y="42">Background</text><text x="82" y="70" font-weight="500">#EFF1F5</text>
+    </g>
+    <g transform="translate(315 112)">
+      <rect width="220" height="120" rx="24" fill="#fff"/>
+      <circle cx="46" cy="46" r="24" fill="#7287fd"/>
+      <text x="82" y="42">Lavender</text><text x="82" y="70" font-weight="500">#7287FD</text>
+    </g>
+    <g transform="translate(560 112)">
+      <rect width="220" height="120" rx="24" fill="#fff"/>
+      <circle cx="46" cy="46" r="24" fill="#202239"/>
+      <text x="82" y="42">Text</text><text x="82" y="70" font-weight="500">#202239</text>
+    </g>
+    <g transform="translate(805 112)">
+      <rect width="220" height="120" rx="24" fill="#fff"/>
+      <circle cx="46" cy="46" r="24" fill="#40a02b"/>
+      <text x="82" y="42">Success</text><text x="82" y="70" font-weight="500">#40A02B</text>
+    </g>
+    <g transform="translate(1050 112)">
+      <rect width="220" height="120" rx="24" fill="#fff"/>
+      <circle cx="46" cy="46" r="24" fill="#df8e1d"/>
+      <text x="82" y="42">Warning</text><text x="82" y="70" font-weight="500">#DF8E1D</text>
+    </g>
+    <g transform="translate(1295 112)">
+      <rect width="220" height="120" rx="24" fill="#fff"/>
+      <circle cx="46" cy="46" r="24" fill="#d20f39"/>
+      <text x="82" y="42">Danger</text><text x="82" y="70" font-weight="500">#D20F39</text>
+    </g>
+  </g>
+</svg>

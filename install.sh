@@ -10,6 +10,8 @@ SKIP_ICONS=false
 DRY_RUN=false
 BACKUP_READY=false
 INSTALL_FINISHED=false
+TEMP_CHECKOUT=""
+ICONS_BEFORE_FILE=""
 
 usage() {
     printf '%s\n' \
@@ -100,13 +102,18 @@ record_new_icon_dirs() {
 
 rollback() {
     local status=$?
-    if [[ "$status" -ne 0 && "$BACKUP_READY" == "true" && "$INSTALL_FINISHED" == "false" ]]; then
+    if [[ "$status" -ne 0 && "$DRY_RUN" == "false" &&
+        "$BACKUP_READY" == "true" && "$INSTALL_FINISHED" == "false" ]]; then
         printf 'Installation failed; restoring backup %s...\n' "$BACKUP_ID" >&2
         set +e
-        record_new_icon_dirs "${ICONS_BEFORE_FILE:-/dev/null}"
+        if [[ -n "$ICONS_BEFORE_FILE" && -f "$ICONS_BEFORE_FILE" ]]; then
+            record_new_icon_dirs "$ICONS_BEFORE_FILE"
+        fi
         restore_backup_files "$BACKUP_DIR"
         remove_installed_icons "$BACKUP_DIR"
         restore_project_wallpaper "$BACKUP_DIR"
+        [[ -z "$TEMP_CHECKOUT" ]] || rm -rf -- "$TEMP_CHECKOUT"
+        [[ -z "$ICONS_BEFORE_FILE" ]] || rm -f -- "$ICONS_BEFORE_FILE"
         set -e
     fi
     exit "$status"
@@ -125,9 +132,9 @@ fi
 create_backup
 BACKUP_READY=true
 
-ICONS_BEFORE_FILE="${TMPDIR:-/tmp}/$PROJECT_ID-icons-before-$$"
 if [[ "$DRY_RUN" == "false" ]]; then
     mkdir -p "$ICONS_HOME"
+    ICONS_BEFORE_FILE="$(mktemp "${TMPDIR:-/tmp}/$PROJECT_ID-icons-before.XXXXXX")"
     find "$ICONS_HOME" -mindepth 1 -maxdepth 1 -type d -name 'MacTahoe*' -print 2>/dev/null |
         LC_ALL=C sort > "$ICONS_BEFORE_FILE"
 fi
@@ -137,13 +144,17 @@ if [[ "$SKIP_ICONS" == "true" ]]; then
 elif [[ -f "$ICONS_HOME/MacTahoe/index.theme" ]]; then
     log 'Using the existing MacTahoe installation'
 else
-    temp_checkout="${TMPDIR:-/tmp}/$PROJECT_ID-mactahoe-$$"
-    run rm -rf -- "$temp_checkout"
-    run git clone --filter=blob:none --no-checkout "$MAC_TAHOE_REPO" "$temp_checkout"
-    run git -C "$temp_checkout" checkout --detach "$MAC_TAHOE_COMMIT"
-    run "$temp_checkout/install.sh" -d "$ICONS_HOME" -t blue
+    if [[ "$DRY_RUN" == "true" ]]; then
+        TEMP_CHECKOUT="${TMPDIR:-/tmp}/$PROJECT_ID-mactahoe.DRY_RUN"
+    else
+        TEMP_CHECKOUT="$(mktemp -d "${TMPDIR:-/tmp}/$PROJECT_ID-mactahoe.XXXXXX")"
+    fi
+    run git clone --filter=blob:none --no-checkout "$MAC_TAHOE_REPO" "$TEMP_CHECKOUT"
+    run git -C "$TEMP_CHECKOUT" checkout --detach "$MAC_TAHOE_COMMIT"
+    run "$TEMP_CHECKOUT/install.sh" -d "$ICONS_HOME" -t blue
     record_new_icon_dirs "$ICONS_BEFORE_FILE"
-    run rm -rf -- "$temp_checkout"
+    run rm -rf -- "$TEMP_CHECKOUT"
+    TEMP_CHECKOUT=""
     log "Installed MacTahoe at $MAC_TAHOE_COMMIT"
 fi
 
@@ -217,6 +228,7 @@ done
 if [[ "$DRY_RUN" == "false" ]]; then
     printf '%s\n' "$BACKUP_ID" > "$PROJECT_STATE_HOME/active-backup"
     rm -f -- "$ICONS_BEFORE_FILE"
+    ICONS_BEFORE_FILE=""
 fi
 
 restart_cosmic_panel

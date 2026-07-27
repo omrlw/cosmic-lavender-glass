@@ -33,6 +33,13 @@ assert_content() {
         fail "unexpected content in $path"
 }
 
+assert_contains() {
+    local expected="$1" path="$2"
+    [[ -f "$path" ]] || fail "expected file: $path"
+    grep -Fq -- "$expected" "$path" ||
+        fail "expected '$expected' in $path"
+}
+
 make_tools() {
     local bin="$1"
     mkdir -p "$bin"
@@ -141,6 +148,11 @@ run_install "$fresh_home" >/dev/null
 assert_content 'false' "$fresh_home/.config/cosmic/com.system76.CosmicPanel.Dock/v1/expand_to_edges"
 assert_content 'true' "$fresh_home/.config/cosmic/com.system76.CosmicPanel.Dock/v1/keep_style_on_maximize"
 assert_content 'All' "$fresh_home/.config/cosmic/com.system76.CosmicPanel.Dock/v1/output"
+assert_content 'Never' "$fresh_home/.config/cosmic/com.system76.CosmicPanel.Dock/v1/autohide"
+assert_content '0.9' "$fresh_home/.config/cosmic/com.system76.CosmicPanel.Dock/v1/opacity"
+assert_content '160' "$fresh_home/.config/cosmic/com.system76.CosmicPanel.Dock/v1/border_radius"
+assert_contains 'cosmic-lavender-glass-5120x1440.png' \
+    "$fresh_home/.config/cosmic/com.system76.CosmicBackground/v1/all"
 assert_file "$fresh_home/.local/share/icons/MacTahoe/index.theme"
 assert_file "$fresh_home/.local/share/backgrounds/cosmic-lavender-glass/cosmic-lavender-glass-5120x1440.png"
 run_uninstall "$fresh_home" >/dev/null
@@ -182,5 +194,41 @@ assert_content 'original-builder' "$failed_home/.config/cosmic/com.system76.Cosm
 assert_content 'old-wallpaper' "$failed_home/.config/cosmic/com.system76.CosmicBackground/v1/all"
 assert_missing "$failed_home/.local/share/backgrounds/cosmic-lavender-glass"
 pass 'failed dependency rolls back automatically'
+
+invalid_home="$(new_home invalid)"
+if run_install "$invalid_home" --skip-icons --output 'DP-1");bad' >/dev/null 2>&1; then
+    fail 'invalid output unexpectedly succeeded'
+fi
+assert_missing "$invalid_home/.local/state/cosmic-lavender-glass"
+pass 'invalid monitor names are rejected before mutation'
+
+unsafe_home="$(new_home unsafe)"
+if HOME="$unsafe_home" \
+    XDG_CONFIG_HOME="/" \
+    XDG_DATA_HOME="$unsafe_home/.local/share" \
+    XDG_STATE_HOME="$unsafe_home/.local/state" \
+    PATH="$TEST_ROOT/bin:$PATH" \
+    "$ROOT/install.sh" --skip-icons >/dev/null 2>&1; then
+    fail 'unsafe XDG root unexpectedly succeeded'
+fi
+pass 'unsafe XDG roots are rejected'
+
+tamper_home="$(new_home tamper)"
+printf 'keep-me' > "$tamper_home/victim"
+run_install "$tamper_home" --skip-icons >/dev/null
+tamper_backup="$(<"$tamper_home/.local/state/cosmic-lavender-glass/active-backup")"
+printf '../../victim\n' > \
+    "$tamper_home/.local/state/cosmic-lavender-glass/backups/$tamper_backup/missing"
+if run_uninstall "$tamper_home" >/dev/null 2>&1; then
+    fail 'tampered backup unexpectedly restored'
+fi
+assert_content 'keep-me' "$tamper_home/victim"
+pass 'tampered backup targets cannot escape COSMIC configuration'
+
+if grep -En '(^|[^[:alnum:]_])sudo([^[:alnum:]_]|$)' \
+    "$ROOT/install.sh" "$ROOT/uninstall.sh" "$ROOT/lib/common.sh" >/dev/null; then
+    fail 'installer scripts must never invoke sudo'
+fi
+pass 'installer remains user-scoped'
 
 printf '1..%d\n' "$pass_count"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 PROJECT_ID="cosmic-lavender-glass"
-PROJECT_VERSION="1.0.0"
+PROJECT_VERSION="1.1.0"
 MAC_TAHOE_REPO="https://github.com/vinceliuice/MacTahoe-icon-theme.git"
 MAC_TAHOE_COMMIT="77eebfcdb5bf7074a2877eaee63f1bf48a994d5e"
 
@@ -25,10 +25,15 @@ run() {
 }
 
 require_home() {
+    local xdg_path
     [[ -n "${HOME:-}" && "$HOME" == /* ]] || die 'HOME must be an absolute path'
     XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
     XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
     XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+    for xdg_path in "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME"; do
+        [[ "$xdg_path" == /* && "$xdg_path" != "/" ]] ||
+            die 'XDG user directories must be safe absolute paths'
+    done
     COSMIC_CONFIG_HOME="$XDG_CONFIG_HOME/cosmic"
     PROJECT_STATE_HOME="$XDG_STATE_HOME/$PROJECT_ID"
     BACKUPS_HOME="$PROJECT_STATE_HOME/backups"
@@ -55,6 +60,14 @@ backup_targets() {
         'com.system76.CosmicTk/v1/icon_theme' \
         'com.system76.CosmicPanel.Dock/v1' \
         'com.system76.CosmicBackground/v1/all'
+}
+
+is_backup_target() {
+    local candidate="$1" allowed
+    while IFS= read -r allowed; do
+        [[ "$candidate" == "$allowed" ]] && return 0
+    done < <(backup_targets)
+    return 1
 }
 
 create_backup() {
@@ -122,6 +135,7 @@ restore_backup_files() {
 
     while IFS= read -r target; do
         [[ -n "$target" ]] || continue
+        is_backup_target "$target" || die "unexpected target in backup: $target"
         source="$backup_dir/config/$target"
         [[ -e "$source" ]] || die "backup payload missing: $target"
         run mkdir -p "$(dirname "$COSMIC_CONFIG_HOME/$target")"
@@ -131,19 +145,22 @@ restore_backup_files() {
 
     while IFS= read -r target; do
         [[ -n "$target" ]] || continue
+        is_backup_target "$target" || die "unexpected target in backup: $target"
         run rm -rf -- "$COSMIC_CONFIG_HOME/$target"
     done < "$backup_dir/missing"
 }
 
 remove_installed_icons() {
-    local backup_dir="$1" icon_path
+    local backup_dir="$1" icon_path icon_name
     [[ -f "$backup_dir/installed-icons" ]] || return 0
     while IFS= read -r icon_path; do
         [[ -n "$icon_path" ]] || continue
-        case "$icon_path" in
-            "$ICONS_HOME"/MacTahoe*) run rm -rf -- "$icon_path" ;;
-            *) die "refusing to remove unexpected icon path: $icon_path" ;;
-        esac
+        [[ "$(dirname "$icon_path")" == "$ICONS_HOME" ]] ||
+            die "refusing to remove unexpected icon path: $icon_path"
+        icon_name="$(basename "$icon_path")"
+        [[ "$icon_name" == MacTahoe || "$icon_name" == MacTahoe-* ]] ||
+            die "refusing to remove unexpected icon path: $icon_path"
+        run rm -rf -- "$icon_path"
     done < "$backup_dir/installed-icons"
 }
 
@@ -151,8 +168,12 @@ restart_cosmic_panel() {
     case ":${XDG_CURRENT_DESKTOP:-}:" in
         *:COSMIC:*|*:cosmic:*)
             if command -v pgrep >/dev/null 2>&1 && pgrep -x cosmic-panel >/dev/null 2>&1; then
-                log 'Restarting cosmic-panel'
-                run pkill -TERM -x cosmic-panel
+                if [[ "${DRY_RUN:-false}" == "true" ]]; then
+                    log 'Would restart cosmic-panel'
+                else
+                    log 'Restarting cosmic-panel'
+                    pkill -TERM -x cosmic-panel
+                fi
             fi
             ;;
     esac

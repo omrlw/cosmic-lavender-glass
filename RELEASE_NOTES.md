@@ -1,16 +1,13 @@
-# COSMIC Lavender Glass v1.0.0
+# COSMIC Lavender Glass v1.1.0
 
-The first public release packages the complete reproducible desktop style:
+The fun, plug-and-play update.
 
-- Catppuccin Latte Lavender COSMIC v2 theme.
-- Medium glass blur for panels, applets, and system UI.
-- Opaque application windows, rounded corners, 8 px inner gaps, and lavender
-  active-window hint.
-- Compact floating dock that does not expand when a window is maximized.
-- Original 5120×1440 lavender glass wallpaper.
-- Safe installer, automatic rollback, and selective restoration.
-- Optional pinned MacTahoe installation without vendoring its files.
+- A much shorter installation path: clone, enter the folder, run the installer.
+- New project hero, palette artwork, wallpaper preview, and cleaner gallery.
+- Friendlier README with advanced options tucked away.
+- Safer temporary-file cleanup and stricter backup restoration.
+- Expanded isolated QA across install, rollback, uninstall, dock behavior,
+  wallpaper setup, unsafe paths, and privacy.
 
-Supported baseline: COSMIC 1.4.0 or newer.
-
-Use `SHA256SUMS` to verify the downloadable files.
+The theme itself keeps the same Catppuccin Latte Lavender look, glass system
+surfaces, readable opaque windows, and compact floating dock.

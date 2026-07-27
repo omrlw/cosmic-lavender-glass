@@ -15,8 +15,10 @@ jobs:
       - name: Install ShellCheck
         run: sudo apt-get update && sudo apt-get install -y shellcheck
       - name: Check shell syntax
-        run: bash -n install.sh uninstall.sh lib/common.sh tests/integration.sh
+        run: bash -n install.sh uninstall.sh lib/common.sh tests/integration.sh tests/repository.sh
       - name: Run ShellCheck
-        run: shellcheck -x install.sh uninstall.sh tests/integration.sh
+        run: shellcheck -x install.sh uninstall.sh tests/integration.sh tests/repository.sh
       - name: Run isolated integration tests
         run: tests/integration.sh
+      - name: Run repository QA
+        run: tests/repository.sh

@@ -1,12 +1,13 @@
 # Preview images
 
-The privacy-safe gallery images were selected from screenshots provided by the
-repository owner:
+The visual set is intentionally lightweight and privacy-safe:
 
+- `hero.svg` — project banner and visual identity.
 - `desktop-preview.webp` — application-library overview.
-- `dock-preview.webp` — privacy-safe dock crop.
+- `dock-preview.webp` — dock-only privacy-safe crop.
+- `wallpaper-preview.webp` — optimized preview of the bundled wallpaper.
+- `palette.svg` — self-contained color guide.
 
-They are stored as stripped WebP files to remove source metadata and keep the
-repository compact. The screenshots may show a wallpaper that is not part of
-this project; only the lavender PNG under `wallpapers/` is distributed and
-licensed by this repository.
+The WebP screenshots are stripped of source metadata. They may show a
+wallpaper that is not part of this project; only the lavender PNG under
+`wallpapers/` is distributed and licensed by this repository.
